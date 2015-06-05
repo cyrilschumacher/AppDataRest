@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Web.Http;
 
 namespace AppDataRest.Configurations
@@ -26,12 +27,16 @@ namespace AppDataRest.Configurations
         /// <param name="rootName">The route name.</param>
         public static void Register(HttpConfiguration config, string rootName)
         {
+            if (config == null)
+            {
+                throw new ArgumentNullException("config");
+            }
             if (string.IsNullOrEmpty(rootName))
             {
                 throw new ArgumentNullException("rootName");
             }
 
-            var routeTemplate = string.Format(RouteTemplate, rootName);
+            var routeTemplate = string.Format(CultureInfo.InvariantCulture, RouteTemplate, rootName);
             config.Routes.MapHttpRoute("AppDataRest", routeTemplate, new { controller = "AppDataRest", action = "Get" });
         }
 

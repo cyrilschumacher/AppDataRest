@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using System.Globalization;
+using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -88,7 +89,7 @@ namespace AppDataRest.Controllers
                     }
                     doc.AppendChild(rootElement);
 
-                    using (var stringWriter = new StringWriter())
+                    using (var stringWriter = new StringWriter(CultureInfo.InvariantCulture))
                     using (var xmlTextWriter = XmlWriter.Create(stringWriter))
                     {
                         doc.WriteTo(xmlTextWriter);
