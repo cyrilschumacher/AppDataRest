@@ -14,8 +14,14 @@ Congratulation! You haves set up the library in your ASP.NET project.
 
 ## Can I configure?
 Of course! For configure the library, you must update your "Web.config" file in adding the next section:
-
 > ```xml
+> <configuration>
+>     <configSections>
+>         <sectionGroup name="appDataRestGroup">
+>             <section name="appDataRest" type="AppDataRest.Configurations.AppDataRestConfigurationSection" allowLocation="true" allowDefinition="Everywhere" />
+>         </sectionGroup>
+>     </configSections>
+> </configuration>
 > <appDataRestGroup>
 >     <appDataRest>
 >         <!-- Configuration here. -->
