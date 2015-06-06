@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 [assembly: CLSCompliant(true)]
 [assembly: AssemblyTitle("AppDataRest")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Library for retrieves a file (or even a list of files in a directory) contained the Application Data directory through a URL.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("AppDataRest")]

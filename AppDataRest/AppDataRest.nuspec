@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>$id$</id>
+    <id>AppDataRest</id>
     <version>1.0.0</version>
     <title>AppDataRest</title>
     <authors>Cyril Schumacher</authors>
-    <owners>$author$</owners>
+    <owners>Cyril Schumacher</owners>
     <licenseUrl>https://github.com/cyrilschumacher/AppDataRest/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/cyrilschumacher/AppDataRest</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
