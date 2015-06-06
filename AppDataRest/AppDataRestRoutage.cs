@@ -2,12 +2,13 @@
 using System.Globalization;
 using System.Web.Http;
 
-namespace AppDataRest.Configurations
+namespace AppDataRest
 {
     /// <summary>
-    ///     AppDataRest configuration.
+    ///     AppDataRest routage.
     /// </summary>
-    public static class AppDataRestConfig
+    [CLSCompliant(true)]
+    public static class AppDataRestRoutage
     {
         #region Constants section.
 
@@ -37,7 +38,7 @@ namespace AppDataRest.Configurations
             }
 
             var routeTemplate = string.Format(CultureInfo.InvariantCulture, RouteTemplate, rootName);
-            config.Routes.MapHttpRoute("AppDataRest", routeTemplate, new { controller = "AppDataRest", action = "Get" });
+            config.Routes.MapHttpRoute("AppDataRest", routeTemplate, new { controller = "AppDataRest" });
         }
 
         #endregion Methods section.

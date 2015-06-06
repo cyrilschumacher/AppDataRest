@@ -1,21 +1,84 @@
-﻿using System.Globalization;
-using Newtonsoft.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web.Hosting;
 using System.Web.Http;
-using System.Xml;
+using AppDataRest.Configurations;
+using AppDataRest.Configurations.Elements;
+using AppDataRest.Services;
+using AppDataRest.Services.Converters;
 
 namespace AppDataRest.Controllers
 {
     /// <summary>
     ///     AppDataRest controller.
     /// </summary>
+    [CLSCompliant(true)]
     public class AppDataRestController : ApiController
     {
+        #region Constants section.
+
+        /// <summary>
+        ///     Absolute path to the application data directory.
+        /// </summary>
+        private const string AppDataPath = "~/App_Data";
+
+        #endregion Constants section.
+
+        #region Members section.
+
+        /// <summary>
+        ///     Absolute path of Application Data directory.
+        /// </summary>
+        private readonly string _absolutePath;
+
+        /// <summary>
+        ///     Configuration.
+        /// </summary>
+        private readonly AppDataRestConfigurationSection _configuration;
+
+        /// <summary>
+        ///     File service.
+        /// </summary>
+        private readonly BaseAppDataService _fileService;
+
+        /// <summary>
+        ///     Directory service.
+        /// </summary>
+        private readonly DirectoryAppDataService _directoryService;
+
+        #endregion Members section.
+
+        #region Constructors section.
+
+        /// <summary>
+        ///     Constructor.
+        /// </summary>
+        public AppDataRestController()
+        {
+            // Initialize members.
+            // Initialize, first, configuration for be used by the services and the resolution of absolute path.
+            _configuration = _GetConfiguration();
+            _absolutePath = _GetAbsolutePath(_configuration.Path.Root);
+            _fileService = new FileAppDataService(_absolutePath);
+            _directoryService = new DirectoryAppDataService(_absolutePath);
+
+            // Adds converters.
+            foreach (ConverterElement element in _configuration.Directory.Converters)
+            {
+                var converter = Activator.CreateInstance(element.Type) as IDirectoryEntriesConverter;
+                var item = new KeyValuePair<string, IDirectoryEntriesConverter>(element.Format, converter);
+
+                _directoryService.Converters.Add(item);
+            }
+        }
+
+        #endregion Constructors section.
+
         #region Methods section.
 
         #region Privates.
@@ -39,100 +102,43 @@ namespace AppDataRest.Controllers
         }
 
         /// <summary>
-        ///     Gets the "App_Data" absolute path.
+        ///     Gets the absolute path.
         /// </summary>
+        /// <param name="relativePath">The relative path.</param>
         /// <returns>The "App_Data" absolute path.</returns>
-        private static string _GetAppDataPath()
+        private static string _GetAbsolutePath(string relativePath)
         {
-            return HostingEnvironment.MapPath("~/App_Data");
+            var path = Path.Combine(AppDataPath, relativePath);
+            return HostingEnvironment.MapPath(path);
         }
 
         /// <summary>
-        ///     Gets directory items.
+        ///     Gets the configuration.
         /// </summary>
-        /// <param name="directoryPath">The directory path.</param>
-        /// <param name="dataFormat">The data format.</param>
-        /// <returns>The items of directory.</returns>
-        private HttpResponseMessage _GetDirectoryItems(string directoryPath, string dataFormat)
+        /// <returns>The configuration.</returns>
+        private static AppDataRestConfigurationSection _GetConfiguration()
         {
-            var entries = Directory.GetFileSystemEntries(directoryPath);
-            var value = entries.Select(entry => entry.Replace(directoryPath, string.Empty).Replace('\\', '/'));
-
-            var items = value.Select(item =>
-            {
-                var extensionItem = Path.GetExtension(item);
-                if (string.IsNullOrEmpty(extensionItem))
-                {
-                    return item;
-                }
-
-                return item.Replace(extensionItem, string.Empty) + "/" + extensionItem.Trim('.');
-            });
-
-            string content;
-            var contentType = "application/json; charset=utf-8";
-            switch (dataFormat)
-            {
-                case "xml":
-                    var doc = new XmlDocument();
-                    var xmlDeclaration = doc.CreateXmlDeclaration("1.0", "utf-8", null);
-                    var root = doc.DocumentElement;
-                    doc.InsertBefore(xmlDeclaration, root);
-
-                    var rootElement = doc.CreateElement("AppData");
-                    foreach (var item in items)
-                    {
-                        var element = doc.CreateElement("item");
-                        var textNode = doc.CreateTextNode(item);
-                        element.AppendChild(textNode);
-                        rootElement.AppendChild(element);
-                    }
-                    doc.AppendChild(rootElement);
-
-                    using (var stringWriter = new StringWriter(CultureInfo.InvariantCulture))
-                    using (var xmlTextWriter = XmlWriter.Create(stringWriter))
-                    {
-                        doc.WriteTo(xmlTextWriter);
-                        xmlTextWriter.Flush();
-                        content = stringWriter.GetStringBuilder().ToString();
-                    }
-
-                    contentType = "text/xml; charset=utf-8";
-                    break;
-
-                default:
-                    content = JsonConvert.SerializeObject(items);
-                    break;
-            }
-
-            return _CreateHttpResponse(content, contentType);
+            return ConfigurationManager.GetSection("appDataRestGroup/appDataRest") as AppDataRestConfigurationSection;
         }
 
         /// <summary>
-        ///     Gets a file content.
+        ///     Gets the content type by extension.
         /// </summary>
-        /// <param name="filePath">The file path.</param>
-        /// <param name="extension">The file extension.</param>
-        /// <returns>The file content.</returns>
-        private HttpResponseMessage _GetFileContent(string filePath, string extension)
+        /// <param name="extension">The extension.</param>
+        /// <returns>The content type.</returns>
+        private static string _GetContentType(string extension)
         {
-            // Reads file.
-            var content = File.ReadAllText(filePath);
-
-            // Gets Content-Type.
-            var contentType = "text/plain; charset=utf-8";
-            switch (extension)
+            var contentType = "text/plain";
+            switch (extension.ToLowerInvariant())
             {
                 case "json":
-                    contentType = "application/json; charset=utf-8";
+                    contentType = "application/json";
                     break;
-
                 case "xml":
-                    contentType = "application/xml; charset=utf-8";
+                    contentType = "application/xml";
                     break;
             }
-
-            return _CreateHttpResponse(content, contentType);
+            return contentType;
         }
 
         #endregion Privates.
@@ -142,42 +148,36 @@ namespace AppDataRest.Controllers
         /// </summary>
         /// <param name="path">The path.</param>
         /// <returns>The file content (or directory items).</returns>
-        public HttpResponseMessage Get(string path)
+        public HttpResponseMessage Get([FromUri] string path)
         {
-            // Gets absolute path of "App_Data" directory.
-            var appDataAbsolutePath = _GetAppDataPath();
-            if (appDataAbsolutePath == null)
+            // If the path has a null value, it resets the value to a empty string.
+            path = path ?? string.Empty;
+
+            // Obtains the extension (if exists) and removes it of path.
+            var extension = BaseAppDataService.GetAndRemoveExtension(ref path, _configuration.Directory.DefaultDataFormat);
+
+            BaseAppDataService service;
+            if (BaseAppDataService.IsDirectory(_absolutePath, path))
             {
-                throw new IOException("The root directory doesn't exists.");
+                service = _directoryService;
+            }
+            else if (BaseAppDataService.IsFile(_absolutePath, path, extension))
+            {
+                service = _fileService;
+            }
+            else
+            {
+                // If the path doesn't represents a file or directory,
+                // it return a HTTP code for indicates no content.
+                return Request.CreateResponse(HttpStatusCode.NoContent);
             }
 
-            // Gets extension.
-            var pathSplit = path.Split('/').ToList();
-            var extension = pathSplit.Last();
-            pathSplit.RemoveAt(pathSplit.Count - 1);
-            extension = extension.ToLowerInvariant();
+            // Gets content and determines the type of content.
+            var content = service.GetContent(path, extension);
+            var contentType = _GetContentType(extension);
 
-            // Creates relative and absolute paths.
-            var relativePath = string.Join(@"\", pathSplit);
-            var absolutePath = Path.Combine(appDataAbsolutePath, relativePath);
-
-            // Creates file relative and absolute path.
-            var filePath = string.Concat(relativePath, ".", extension);
-            var fileAbsolutePath = Path.Combine(appDataAbsolutePath, filePath);
-
-            // Gets the file content.
-            if (File.Exists(fileAbsolutePath))
-            {
-                return _GetFileContent(fileAbsolutePath, extension);
-            }
-
-            // Gets the directory content.
-            if (Directory.Exists(absolutePath))
-            {
-                return _GetDirectoryItems(absolutePath, extension);
-            }
-
-            return Request.CreateResponse(HttpStatusCode.NoContent);
+            // Returns the content to the user.
+            return _CreateHttpResponse(content, contentType);
         }
 
         #endregion Methods section.

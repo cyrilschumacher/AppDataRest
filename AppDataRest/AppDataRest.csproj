@@ -62,9 +62,20 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configurations\AppDataRestConfig.cs" />
+    <Compile Include="AppDataRestRoutage.cs" />
+    <Compile Include="Configurations\AppDataRestConfigurationSection.cs" />
+    <Compile Include="Configurations\Elements\ConverterElement.cs" />
+    <Compile Include="Configurations\Elements\ConvertersCollection.cs" />
+    <Compile Include="Configurations\Elements\DirectoryElement.cs" />
+    <Compile Include="Configurations\Elements\PathElement.cs" />
     <Compile Include="Controllers\AppDataRestController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\BaseAppDataService.cs" />
+    <Compile Include="Services\Converters\IDirectoryEntriesConverter.cs" />
+    <Compile Include="Services\Converters\XmlDirectoryEntriesConverter.cs" />
+    <Compile Include="Services\Converters\JsonDirectoryEntriesConverter.cs" />
+    <Compile Include="Services\DirectoryAppDataService.cs" />
+    <Compile Include="Services\FileAppDataService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

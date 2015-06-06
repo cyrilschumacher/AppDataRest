@@ -1,4 +1,47 @@
 # AppDataRest
+## What's it?
+**AppDataRest** is a library for retrieves a file (or even a list of files in a directory) contained the *Application Data* directory through a URL.
+
+## Why this library?
+I wanted to provide files to my website and to easily update mettres (without installing or spend a third party tool). With this library, I create a JSON file (or other type) and I moves in the Application Data directory. From there, I can call my file from a URL.
+
+## How do I set it up?
+The first step is add the line:
+
+> AppDataRestRoutage.Register(config, "TO_REPLACE");
+
+Congratulation! You haves set up the library in your ASP.NET project.
+
+## Can I configure?
+Of course! For configure the library, you must update your "Web.config" file in adding the next section:
+
+> ```xml
+> <appDataRestGroup>
+>     <appDataRest>
+>         <!-- Configuration here. -->
+>     </appDataRest>
+> </appDataRestGroup>
+> ```
+
+In the "appDataRest" tag, you can configure the library.
+
+| Name            | Description                           | Value type         |
+|:----------------|:--------------------------------------|:-------------------|
+| **directory**   | For configure the directory display.  | *DirectoryElement* |
+| **path**        | For configure the path                | *PathElement*      |
+
+| Name                 |Property name        | Description                                                  | Value type             |
+|:---------------------|:------------------- |:-------------------------------------------------------------|:-----------------------|
+| **DirectoryElement** | Converters          | The Converters to convert the phonebook entries in a format. | *ConvertersCollection* |
+|                      | DefaultDataFormat   | The default format for displaying directory entries.         | *string*               |
+| **PathElement**      | Root                | The root directory name.                                     | *string*               |
+
+
+## Example ##
+For example, if I want obtain the "File.json" file since the "directory/sub/", I type the URL address:
+
+> http://www.example.com/files/directory/sub/file/json
+
 ## Copyright
 
 > The MIT License (MIT)
